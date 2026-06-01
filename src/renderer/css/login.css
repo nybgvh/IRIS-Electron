@@ -1,0 +1,89 @@
+.login-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 18% 28%, rgba(46, 193, 107, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 82% 72%, rgba(207, 157, 61, 0.08) 0%, transparent 45%),
+    var(--nybg-cream);
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: white;
+  border: 1px solid var(--nybg-line);
+  border-top: 6px solid var(--iucn-teal);
+  border-radius: 10px;
+  padding: 44px 40px 36px;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-wordmark {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 64px;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--nybg-ink);
+  text-align: center;
+}
+.login-tagline {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 2.6px;
+  text-transform: uppercase;
+  color: var(--nybg-muted);
+  margin-top: 10px;
+  margin-bottom: 30px;
+}
+.login-from {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--nybg-muted);
+  margin-bottom: 6px;
+}
+.login-from strong { color: var(--nybg-pine-deep); font-weight: 700; letter-spacing: 1.4px; }
+
+.login-form { display: flex; flex-direction: column; gap: 14px; }
+.login-form .btn { justify-content: center; padding: 12px; font-size: 13px; }
+.login-form .btn.primary {
+  background: var(--iucn-teal);
+  border-color: var(--iucn-teal);
+  color: #fff;
+}
+.login-form .btn.primary:hover {
+  background: var(--iucn-teal-dark);
+  border-color: var(--iucn-teal-dark);
+  color: #fff;
+}
+
+.login-error {
+  display: none;
+  background: rgba(255, 94, 39, 0.10);
+  border: 1px solid var(--nybg-poppy);
+  color: #6f2a0d;
+  font-size: 12.5px;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+.login-error.show { display: block; }
+
+.login-hint {
+  margin-top: 18px;
+  font-size: 11px;
+  color: var(--nybg-muted);
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+.login-hint code {
+  font-family: 'Martian Mono', monospace;
+  font-size: 11px;
+  background: var(--nybg-cream);
+  border: 1px solid var(--nybg-line);
+  padding: 1px 6px;
+  border-radius: 3px;
+}

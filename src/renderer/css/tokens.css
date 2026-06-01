@@ -1,0 +1,67 @@
+/* NYBG palette + typography. Lifted from IRIS_ideas.html so the design
+   stays anchored to NYBG's nybg.org bs-* tokens. */
+
+:root {
+  --nybg-pine:         #0a5447;
+  --nybg-pine-deep:    #073d34;
+  --nybg-pine-darker:  #052824;
+  --nybg-lettuce:      #2ec16b;
+  --nybg-lettuce-dark: #25a05a;
+  --nybg-helleborus:   #e2ffb5;
+  --nybg-helleborus-soft: #f0fbd9;
+  --nybg-moss:         #6d7b32;
+  --nybg-oak:          #cf9d3d;
+  --nybg-tulip:        #ffe594;
+  --nybg-poppy:        #ff5e27;
+  --nybg-coral:        #ff956f;
+  --nybg-river:        #069ed3;
+  --nybg-iris:         #ad64ff;
+  --nybg-sanguisorba:  #841f74;
+
+  --nybg-morel:        #000;
+  --nybg-ink:          #0a0a0a;
+  --nybg-paper:        #ffffff;
+  --nybg-paper-soft:   #fafafa;
+  --nybg-cream:        #f7f6f1;
+  --nybg-muted:        #5d5d5d;
+  --nybg-line:         #e3e3e0;
+  --nybg-line-dark:    #c5c5c2;
+
+  --shadow-sm: 0 1px 2px rgba(10, 84, 71, 0.06);
+  --shadow-md: 0 4px 12px rgba(10, 84, 71, 0.10);
+  --shadow-lg: 0 12px 32px rgba(10, 84, 71, 0.16);
+
+  /* ============================================================
+     IUCN palette (from the IUCN Brand Book, May 2011).
+     Use these when rendering IUCN-compliant output (assessment
+     exports, citation blocks, official preview surfaces).
+     The workspace UI continues to use the --nybg-* tokens.
+     ============================================================ */
+
+  /* Corporate colours */
+  --iucn-blue:          #0098c3;   /* Pantone 313 — primary IUCN blue */
+  --iucn-black:         #000000;
+  --iucn-white:         #ffffff;
+
+  /* Secondary — blues */
+  --iucn-blue-dark:     #003478;   /* Pantone 294 */
+  --iucn-blue-light:    #63b1e5;   /* Pantone 292 */
+
+  /* Secondary — greens & teal */
+  --iucn-teal:          #00747a;   /* Pantone 322 */
+  --iucn-teal-dark:     #005a5e;   /* derived hover/active variant */
+  --iucn-green-dark:    #275937;   /* Pantone 357 */
+  --iucn-green:         #5f9c35;   /* Pantone 362 */
+  --iucn-olive:         #726e20;   /* Pantone 385 */
+
+  /* Secondary — warm accents */
+  --iucn-purple:        #6e2d86;   /* Pantone 526 */
+  --iucn-red:           #b71234;   /* Pantone 200 */
+  --iucn-orange:        #e98900;   /* Pantone 144 */
+  --iucn-yellow:        #fdc82f;   /* Pantone 123 */
+
+  /* Secondary — neutrals */
+  --iucn-brown:         #703d29;   /* Pantone 478 */
+  --iucn-warm-gray:     #857363;   /* Pantone 7531 */
+  --iucn-stone:         #bdb1a6;   /* Pantone 7529 */
+}
