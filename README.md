@@ -28,6 +28,12 @@ GEMINI_API_KEY=<your key>          # Red List summary generation
 npm start
 ```
 
+Or just **double-click a launcher** — `dev.command` (macOS), `dev.bat`
+(Windows), or `dev.sh` (Linux). Each `cd`s into the repo and runs `npm start`
+against the working tree, so your edits are picked up on every relaunch
+(Cmd/Ctrl+R inside the window live-reloads the renderer). On Linux you may need
+to `chmod +x dev.sh` and allow your file manager to run executable text files.
+
 > If the window fails to open with `Cannot read properties of undefined (reading 'isPackaged')`,
 > a leaked `ELECTRON_RUN_AS_NODE` (from a smoke run) is the cause — clear it:
 > `env -u ELECTRON_RUN_AS_NODE npm start`.
