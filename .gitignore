@@ -5,9 +5,9 @@ out/
 dev/
 
 .env
-.env.example
 .env.local
 .env.signing
+# .env.example IS committed — it's the secret-free config template.
 
 *.log
 *.tmp.*
