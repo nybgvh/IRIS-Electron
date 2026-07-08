@@ -17,3 +17,12 @@ Thumbs.db
 
 .vscode/
 .idea/
+
+# Design mockups (scratch, not committed) — see memory/reference_mockups_process
+scratch_designs/
+
+# Large local test fixtures & Python build artifacts (not committed)
+examples/test_images/
+examples/test_pdfs/
+examples/__pycache__/
+examples/*.csv

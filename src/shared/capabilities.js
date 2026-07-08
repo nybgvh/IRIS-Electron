@@ -20,6 +20,8 @@ const CAPS = Object.freeze({
   SOURCE_DELETE:          'source:delete',
   ASSESSMENT_EDIT:        'assessment:edit',
   VOUCHERVISION_RUN:      'vouchervision:run',
+  // Create/rename/delete tags and attach them to items in the Library.
+  SOURCE_TAG:             'source:tag',
 });
 
 // project role → set of capabilities
@@ -27,12 +29,12 @@ const PROJECT_CAPABILITIES = Object.freeze({
   [PROJECT_ROLES.OWNER]: new Set([
     CAPS.PROJECT_VIEW, CAPS.PROJECT_EDIT, CAPS.PROJECT_DELETE,
     CAPS.MEMBERS_MANAGE,
-    CAPS.SOURCE_UPLOAD, CAPS.SOURCE_DELETE,
+    CAPS.SOURCE_UPLOAD, CAPS.SOURCE_DELETE, CAPS.SOURCE_TAG,
     CAPS.ASSESSMENT_EDIT, CAPS.VOUCHERVISION_RUN,
   ]),
   [PROJECT_ROLES.EDITOR]: new Set([
     CAPS.PROJECT_VIEW,
-    CAPS.SOURCE_UPLOAD, CAPS.SOURCE_DELETE,
+    CAPS.SOURCE_UPLOAD, CAPS.SOURCE_DELETE, CAPS.SOURCE_TAG,
     CAPS.ASSESSMENT_EDIT, CAPS.VOUCHERVISION_RUN,
   ]),
   [PROJECT_ROLES.UPLOADER]: new Set([

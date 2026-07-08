@@ -14,7 +14,7 @@ const userService = require('../src/server/services/user-service');
   runSeed();
 
   // Admin logs in. There's a seeded project; we use that as the test target.
-  const { token: adminToken } = await authService.login({ email: '1234@gmail.com', password: '1234' });
+  const { token: adminToken } = await authService.login({ email: 'admin@gmail.com', password: '1234' });
   const admin = authService.userFromToken(adminToken);
   const projects = projectService.list(admin);
   const project = projects[0];

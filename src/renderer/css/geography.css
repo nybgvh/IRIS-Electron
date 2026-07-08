@@ -1,0 +1,148 @@
+/* Geography tab — Leaflet map + EOO polygon export panel. */
+
+.geo-wrap {
+  display: flex; gap: 0; height: calc(100vh - 190px); min-height: 420px;
+}
+/* position + z-index create a stacking context that CONTAINS Leaflet's panes
+   and controls (which set z-indexes up to ~1000 and would otherwise hoist to
+   the document root and paint over the app's toolbar menus, dialogs, and
+   dropdowns). Pinned at z-index 0, the whole map sits below any app overlay
+   with a positive z-index. */
+.geo-map { flex: 1; min-width: 0; height: 100%; background: var(--nybg-cream); position: relative; z-index: 0; }
+.geo-map .leaflet-container { height: 100%; width: 100%; font: inherit; }
+
+.geo-side {
+  width: 340px; flex: none; border-left: 1px solid var(--nybg-line);
+  padding: 16px; overflow-y: auto; background: var(--nybg-paper);
+}
+.geo-side-head {
+  font: 600 12px 'Martian Mono', monospace; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--nybg-pine); margin-bottom: 12px;
+}
+.geo-eoo {
+  padding: 12px 14px; border: 1px solid var(--nybg-line); border-radius: 10px;
+  background: var(--nybg-helleborus-soft); margin-bottom: 14px;
+}
+.eoo-num { font: 600 26px 'Fraunces', serif; color: var(--nybg-pine-deep); }
+
+.fmt-block { margin-bottom: 14px; }
+.fmt-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font: 600 11px 'Martian Mono', monospace; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--nybg-muted); margin-bottom: 5px;
+}
+.fmt-text {
+  width: 100%; resize: vertical; font: 400 11.5px/1.4 'Martian Mono', monospace;
+  border: 1px solid var(--nybg-line); border-radius: 8px; padding: 8px; background: var(--nybg-paper-soft);
+  color: var(--nybg-ink); box-sizing: border-box;
+}
+
+.map-layer-switch { display: inline-flex; gap: 4px; }
+
+.geo-empty {
+  height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: var(--nybg-muted); text-align: center; line-height: 1.6; padding: 30px;
+}
+.geo-empty .glyph { font-size: 44px; opacity: .5; }
+
+/* ---- hover popup --------------------------------------------------------- */
+.geo-popup-wrap .leaflet-popup-content-wrapper { border-radius: 10px; padding: 2px; }
+/* Fixed (doubled) width — an explicit width beats Leaflet's own inline
+   min/maxWidth sizing, which otherwise collapses the popup to its content. */
+.geo-popup-wrap .leaflet-popup-content { margin: 10px 12px; width: min(520px, 82vw) !important; }
+.geo-popup-img {
+  border: 1px solid var(--nybg-line); border-radius: 8px; overflow: hidden;
+  background: var(--nybg-cream); display: flex; align-items: center; justify-content: center;
+  max-height: 480px;
+}
+.geo-popup-img img { max-width: 100%; max-height: 480px; display: block; }
+.geo-popup-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; gap: 8px; }
+.img-toggle { display: inline-flex; gap: 3px; }
+.geo-popup-name { font: 600 13px 'Fraunces', serif; margin-top: 6px; color: var(--nybg-ink); }
+.geo-popup-file { color: var(--nybg-muted); word-break: break-all; }
+
+.flag-btn {
+  border: 1px solid var(--nybg-line-dark); background: var(--nybg-paper); cursor: pointer;
+  border-radius: 8px; padding: 3px 9px; font-size: 15px; line-height: 1; color: var(--nybg-muted);
+  transition: .12s;
+}
+.flag-btn:hover:not(:disabled) { border-color: var(--nybg-poppy); color: var(--nybg-poppy); }
+.flag-btn.on { background: var(--nybg-poppy); border-color: var(--nybg-poppy); color: #fff; }
+.flag-btn:disabled { opacity: .4; cursor: default; }
+
+.geo-popup-actions { display: inline-flex; align-items: center; gap: 6px; }
+.excl-btn {
+  border: 1px solid var(--nybg-line-dark); background: var(--nybg-paper); cursor: pointer;
+  border-radius: 8px; padding: 5px 10px; font: 600 11px 'Inter', sans-serif; line-height: 1;
+  color: var(--nybg-muted); white-space: nowrap; transition: .12s;
+}
+.excl-btn:hover:not(:disabled) { border-color: var(--iucn-warm-gray); color: var(--nybg-ink); }
+.excl-btn.on { background: color-mix(in srgb, var(--iucn-warm-gray) 20%, #fff); border-color: var(--iucn-warm-gray); color: var(--iucn-brown); }
+.excl-btn:disabled { opacity: .4; cursor: default; }
+
+/* ---- flagged item styling in the Library -------------------------------- */
+.item-card.flagged .item-thumb,
+.item-row.flagged .item-row-thumb {
+  background-color: var(--nybg-poppy);
+  box-shadow: inset 0 0 0 2px var(--nybg-poppy);
+}
+.flag-overlay {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  background: var(--nybg-poppy); color: #fff; border-radius: 6px;
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; box-shadow: var(--shadow-sm);
+}
+.item-row .flag-overlay { position: static; }
+
+/* ---- fullscreen image lightbox (zoom + pan) ----------------------------- */
+.lightbox {
+  /* Above Leaflet's panes + controls (which reach ~1000 and, because
+     .leaflet-container makes no stacking context, hoist to the root) and the
+     app's own overlays (≤200). */
+  position: fixed; inset: 0; z-index: 5000;
+  background: rgba(5, 40, 36, 0.97);       /* deep pine, on-brand backdrop */
+  display: flex; flex-direction: column;
+}
+.lightbox-topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 16px; flex: none; background: var(--nybg-paper);
+  border-bottom: 1px solid var(--nybg-line);
+}
+.lightbox-title { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.lightbox-title .lb-name {
+  font: 600 15px 'Fraunces', serif; color: var(--nybg-pine-deep);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lightbox-title .lb-label { color: var(--nybg-muted); flex: none; }
+.lightbox-tools { display: flex; align-items: center; gap: 6px; flex: none; }
+.lb-toggle { display: inline-flex; gap: 4px; margin-right: 4px; }
+.lightbox-zoom {
+  font: 500 12px 'Martian Mono', monospace; color: var(--nybg-muted);
+  min-width: 46px; text-align: center;
+}
+.lightbox-stage {
+  flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center;
+  position: relative; user-select: none;
+}
+.lightbox-stage img {
+  max-width: 100%; max-height: 100%; transform-origin: center center;
+  will-change: transform; -webkit-user-drag: none;
+  box-shadow: 0 8px 40px rgba(0,0,0,.4);
+}
+
+/* ---- inline specimen citations + floating hovercard --------------------- */
+.specimen-link {
+  color: var(--nybg-pine); text-decoration: underline;
+  text-decoration-color: var(--nybg-lettuce); text-underline-offset: 2px;
+  cursor: pointer; font-weight: 500;
+}
+.specimen-link:hover { background: var(--nybg-helleborus-soft); }
+
+#spec-hovercard-root .spec-hovercard {
+  position: fixed; z-index: 1500; width: 560px;
+  background: var(--nybg-paper); border: 1px solid var(--nybg-line-dark);
+  border-radius: 12px; box-shadow: var(--shadow-lg); padding: 10px;
+}
+/* the card reuses the map popup's inner styling (.geo-popup*) */
+#spec-hovercard-root .geo-popup-name { font: 600 13px 'Fraunces', serif; margin-top: 6px; color: var(--nybg-ink); }
+#spec-hovercard-root .geo-popup-file { color: var(--nybg-muted); word-break: break-all; }

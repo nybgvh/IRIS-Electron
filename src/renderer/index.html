@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' iris-source:;
-                 img-src 'self' data: iris-source:;
+                 img-src 'self' data: iris-source: https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://*.tile.openstreetmap.org;
                  font-src 'self' https://fonts.gstatic.com;
                  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
                  script-src 'self';
@@ -24,6 +24,9 @@
   <link rel="stylesheet" href="css/login.css" />
   <link rel="stylesheet" href="css/pages.css" />
   <link rel="stylesheet" href="css/sources.css" />
+  <link rel="stylesheet" href="css/library.css" />
+  <link rel="stylesheet" href="js/lib/leaflet.min.css" />
+  <link rel="stylesheet" href="css/geography.css" />
   <link rel="stylesheet" href="css/admin.css" />
 </head>
 <body>
@@ -37,6 +40,7 @@
     </div>
   </div>
 
+  <script src="js/lib/leaflet.min.js"></script>
   <script src="js/api-client.js"></script>
   <script src="js/session.js"></script>
   <script src="js/components/toast.js"></script>
@@ -44,12 +48,17 @@
   <script src="js/components/admin-dashboard.js"></script>
   <script src="js/components/topbar.js"></script>
   <script src="js/components/tabs.js"></script>
+  <script src="js/components/lightbox.js"></script>
+  <script src="js/components/specimen-card.js"></script>
+  <script src="js/components/dialog.js"></script>
+  <script src="js/components/page-header.js"></script>
   <script src="js/components/settings-dialog.js"></script>
   <script src="js/pages/login.js"></script>
   <script src="js/pages/project.js"></script>
   <script src="js/pages/sources.js"></script>
   <script src="js/pages/geography.js"></script>
   <script src="js/pages/assessment.js"></script>
+  <script src="js/pages/gbif.js"></script>
   <script src="js/pages/references.js"></script>
   <script src="js/router.js"></script>
   <script src="js/main.js"></script>

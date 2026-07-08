@@ -93,13 +93,38 @@ module.exports = {
     vertexProject:    str('VV_VERTEX_PROJECT', ''),
     vertexRegion:     str('VV_VERTEX_REGION', 'global'),
 
-    // Queue / worker shape.
-    concurrency:      int('VV_CONCURRENCY', 1),
+    // Queue / worker shape. Up to `concurrency` images (each a separate
+    // /process call) run at once; override with VV_CONCURRENCY. The VVGO
+    // server caps its own workers at 32 and throttles beyond capacity.
+    concurrency:      int('VV_CONCURRENCY', 16),
     pageConcurrency:  int('VV_PAGE_CONCURRENCY', 4),
     pdfDpi:           int('VV_PDF_DPI', 150),
+
+    // PDF / notebook pages are rasterised to JPGs and submitted like any other
+    // image, BUT they're text documents with no single specimen label — the
+    // server's collage step 500s on them. So those pages are submitted OCR-only
+    // with the collage skipped (they return OCR text, no formatted_json). These
+    // apply ONLY to PDF/notebook pages; single specimen images are unaffected.
+    pdfOcrOnly:          bool('VV_PDF_OCR_ONLY', true),
+    pdfSkipLabelCollage: bool('VV_PDF_SKIP_LABEL_COLLAGE', true),
     submitTimeoutMs:  int('VV_TIMEOUT_MS', 300000),
     maxRetries:       int('VV_MAX_RETRIES', 2),
     tickIntervalMs:   int('VV_TICK_MS', 2000),
+  },
+
+  // Aggregate / summary generation (draft Red List assessments rolled up from
+  // many items). Runs SERVER-SIDE only — the key never reaches the renderer.
+  // `provider` is swappable: 'gemini' calls the Google GenAI REST API today; a
+  // future 'vvgo' provider can call a VoucherVisionGO aggregate endpoint with
+  // no change to the assessment service or UI.
+  aggregation: {
+    provider:  str('AGGREGATION_PROVIDER', 'gemini'),
+    // Higher-quality model for the roll-up (per-item extraction stays cheap).
+    model:     str('AGGREGATION_MODEL', 'gemini-3.1-pro-preview'),
+    apiBase:   str('GEMINI_API_BASE', 'https://generativelanguage.googleapis.com'),
+    timeoutMs: int('AGGREGATION_TIMEOUT_MS', 120000),
+    // Cap how many item records feed one prompt (token safety).
+    maxRecords: int('AGGREGATION_MAX_RECORDS', 200),
   },
 
   // Useful diagnostic getters.
@@ -107,4 +132,5 @@ module.exports = {
   hasBhl:    () => !!str('BHL_API_KEY'),
   hasGbif:   () => !!str('GBIF_API_USER') && !!str('GBIF_API_PASSWORD'),
   hasVouchervision: () => !!str('VV_API_BASE_URL') && !!str('VV_API_KEY'),
+  hasAggregation:   () => !!str('GEMINI_API_KEY'),
 };

@@ -25,7 +25,7 @@ const fileStore = require('../src/server/storage/file-store');
   console.log('seed:', runSeed());
 
   console.log('--- good login ---');
-  const ok = await authService.login({ email: '1234@gmail.com', password: '1234' });
+  const ok = await authService.login({ email: 'admin@gmail.com', password: '1234' });
   console.log('user:', ok.user.email, 'role:', ok.user.role);
   const user = authService.userFromToken(ok.token);
 
@@ -40,7 +40,7 @@ const fileStore = require('../src/server/storage/file-store');
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
     'base64'
   );
-  const src = sourceService.upload(user, projectId, {
+  const src = await sourceService.upload(user, projectId, {
     filename: 'pixel.png',
     mime_type: 'image/png',
     buffer: fakeBytes,

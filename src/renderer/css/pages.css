@@ -144,9 +144,49 @@
 
 .project-active {
   margin-bottom: 6px;
-  border-left: 4px solid var(--iucn-teal);
 }
-.project-active-empty { border-left-color: var(--nybg-line-dark); }
+.project-active-empty { border-left: 4px solid var(--nybg-line-dark); }
+
+/* ---- Overview infographic strip (project dashboard) --------------------- */
+.ov { font-family: 'Inter', sans-serif; color: var(--nybg-ink); }
+.ov .ov-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.ov .ov-titlerow { display: flex; align-items: center; gap: 12px; }
+.ov .ov-emoji { flex: none; width: 48px; height: 48px; border-radius: 13px; background: var(--nybg-helleborus-soft); display: flex; align-items: center; justify-content: center; font-size: 27px; line-height: 1; box-shadow: inset 0 0 0 1px var(--nybg-line); }
+.ov .ov-name { font: 600 28px 'Fraunces', serif; line-height: 1; margin: 0; color: var(--nybg-pine-deep); letter-spacing: -.01em; }
+.ov .ov-num { align-self: center; font: 500 10px 'Martian Mono', monospace; color: var(--nybg-muted); background: var(--cream); border: 1px solid var(--nybg-line); border-radius: 6px; padding: 4px 8px; letter-spacing: .08em; text-transform: uppercase; }
+.ov .ov-headright { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; flex: none; }
+.ov .ov-toprow { display: flex; align-items: center; gap: 9px; }
+.ov .ov-vu { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--nybg-line); border-radius: 999px; padding: 4px 14px 4px 5px; box-shadow: 0 1px 2px rgba(10,84,71,.05); }
+.ov .ov-vu-label { font: 500 12px 'Inter', sans-serif; color: #3a3a3a; }
+.ov .ov-dates { display: flex; align-items: center; gap: 8px; font: 500 9.5px 'Martian Mono', monospace; letter-spacing: .06em; color: var(--nybg-muted); text-transform: uppercase; }
+.ov .ov-dot-sep { color: var(--nybg-line-dark); }
+.ov .ov-desc { font: 400 13.5px/1.55 'Inter', sans-serif; color: #3d3d3d; margin: 15px 0 0; max-width: 660px; }
+.ov .ov-desc .muted { color: var(--nybg-muted); font-style: italic; }
+.ov .ov-empty { margin-top: 18px; padding: 18px; background: var(--nybg-paper-soft); border: 1px solid var(--nybg-line); border-radius: 10px; }
+.ov .ov-kpis { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 20px; border-top: 1px solid var(--nybg-line); border-bottom: 1px solid var(--nybg-line); }
+.ov .ov-kpi { padding: 17px 16px 16px; position: relative; }
+.ov .ov-kpi + .ov-kpi::before { content: ""; position: absolute; left: 0; top: 18px; bottom: 16px; width: 1px; background: var(--nybg-line); }
+.ov .ov-kpi-num { font: 600 40px 'Fraunces', serif; line-height: .9; color: var(--nybg-pine); letter-spacing: -.02em; }
+.ov .ov-kpi-label { font: 500 10px 'Martian Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--iucn-teal); margin-top: 9px; }
+.ov .ov-kpi-sub { font: 500 9px 'Martian Mono', monospace; letter-spacing: .02em; color: var(--nybg-muted); margin-top: 5px; }
+.ov .ov-bars { margin-top: 20px; display: flex; flex-direction: column; gap: 15px; }
+.ov .ov-bar-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 7px; }
+.ov .ov-bar-label { font: 500 10px 'Martian Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--iucn-teal); white-space: nowrap; }
+.ov .ov-legend { display: flex; gap: 15px; flex-wrap: wrap; justify-content: flex-end; }
+.ov .ov-leg { display: flex; align-items: center; gap: 6px; font: 500 9.5px 'Martian Mono', monospace; color: #555; letter-spacing: .02em; }
+.ov .ov-leg b { color: var(--nybg-ink); font-weight: 700; }
+.ov .ov-dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.ov .ov-track { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--nybg-line); }
+.ov .ov-seg { height: 100%; min-width: 3px; }
+.ov .ov-seg + .ov-seg { box-shadow: inset 1.5px 0 0 #fff; }
+.ov .ov-seg-img { background: var(--nybg-pine); }
+.ov .ov-seg-pdf { background: var(--nybg-oak); }
+.ov .ov-seg-nb { background: var(--nybg-river); }
+.ov .ov-seg-gbif { background: var(--iucn-teal); }
+.ov .ov-seg-upload { background: var(--nybg-lettuce); }
+.ov .ov-seg-complete { background: var(--nybg-lettuce-dark); }
+.ov .ov-seg-pending { background: var(--nybg-oak); }
+.ov .ov-seg-error { background: #b23b2e; }
 .project-active-head {
   display: flex;
   align-items: flex-start;

@@ -55,8 +55,11 @@ function registerAll() {
   require('./projects.ipc')(register, envelope);
   require('./members.ipc')(register, envelope);
   require('./sources.ipc')(register, envelope);
+  require('./items.ipc')(register, envelope);
+  require('./tags.ipc')(register, envelope);
   require('./vouchervision.ipc')(register, envelope);
   require('./assessments.ipc')(register, envelope);
+  require('./gbif.ipc')(register, envelope);
   require('./settings.ipc')(register, envelope);
   require('./admin.ipc')(register, envelope);
   require('./updater.ipc')(register, envelope);

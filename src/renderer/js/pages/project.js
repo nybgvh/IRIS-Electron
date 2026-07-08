@@ -68,8 +68,9 @@
 
     container.innerHTML = `
       <div class="page-toolbar">
-        <span class="title">Project</span>
-        <span class="subtitle">— context for every other tab</span>
+        ${active
+          ? window.IRIS.pageHeader({ label: 'Overview', name: active.name, meta: active.description || 'Project workspace' })
+          : window.IRIS.pageHeader({ label: 'Projects', name: 'Your workspace', meta: `${projects.length} project${projects.length === 1 ? '' : 's'}` })}
         <div class="spacer"></div>
         <span class="phase beta">Phase 0</span>
       </div>
@@ -101,25 +102,36 @@
     const isOwner = canEdit(p, user);
     return `
       <div class="project-active card">
-        <div class="project-active-head">
-          <div>
-            <div class="project-active-eyebrow">Active project</div>
-            <h2 class="project-active-name" id="proj-name-display">${escapeHtml(p.name)}</h2>
-          </div>
-          <div class="project-active-actions">
-            ${isOwner ? `<button class="btn ghost sm" data-act="edit-active">Edit</button>` : ''}
-            ${isOwner ? `<button class="btn danger sm" data-act="delete-active">Archive</button>` : ''}
-          </div>
-        </div>
+        <div class="ov">
+          <header class="ov-head">
+            <div class="ov-id">
+              <div class="ov-titlerow">
+                <span class="ov-emoji" aria-hidden="true">🌿</span>
+                <h2 class="ov-name" id="proj-name-display">${escapeHtml(p.name)}</h2>
+                <span class="ov-num">ID · ${p.id}</span>
+              </div>
+            </div>
+            <div class="ov-headright">
+              <div class="ov-toprow">
+                <span id="proj-redlist"></span>
+                ${isOwner ? `<button class="btn ghost sm" data-act="edit-active">Edit</button>` : ''}
+                ${isOwner ? `<button class="btn danger sm" data-act="delete-active">Archive</button>` : ''}
+              </div>
+              <div class="ov-dates">
+                <span>Created ${escapeHtml(fmtDate(p.created_at))}</span>
+                <span class="ov-dot-sep">·</span>
+                <span>Updated ${escapeHtml(fmtDate(p.updated_at))}</span>
+              </div>
+            </div>
+          </header>
 
-        <div class="project-active-meta">
-          <div><span class="meta-label">ID</span> <span class="mono">#${p.id}</span></div>
-          <div><span class="meta-label">Created</span> ${escapeHtml(fmtDate(p.created_at))}</div>
-          <div><span class="meta-label">Updated</span> ${escapeHtml(fmtDate(p.updated_at))}</div>
-        </div>
+          <p class="ov-desc" id="proj-desc-display">
+            ${p.description ? escapeHtml(p.description) : '<span class="muted">No description.</span>'}
+          </p>
 
-        <div class="project-active-desc" id="proj-desc-display">
-          ${p.description ? escapeHtml(p.description) : '<span class="muted">No description.</span>'}
+          <div id="proj-dashboard">
+            <div class="muted small">Loading summary…</div>
+          </div>
         </div>
 
         <div class="project-edit hidden" id="proj-edit">
@@ -307,6 +319,93 @@
 
     // members
     loadMembers();
+    // dashboard summary
+    loadDashboard();
+  }
+
+  const CAT_LABEL = {
+    EX: 'Extinct', EW: 'Extinct in the Wild', CR: 'Critically Endangered', EN: 'Endangered',
+    VU: 'Vulnerable', NT: 'Near Threatened', LC: 'Least Concern', DD: 'Data Deficient', NE: 'Not Evaluated',
+  };
+  const CAT_RANK = { final: 3, review: 2, draft: 1 };
+
+  // The project's current Red List category: the assessment with a category,
+  // preferring final > review > draft, then most recent.
+  function latestCategory(assessments) {
+    const withCat = (assessments || []).filter(a => a.iucn_category);
+    if (!withCat.length) return null;
+    withCat.sort((a, b) =>
+      (CAT_RANK[b.status] || 0) - (CAT_RANK[a.status] || 0) ||
+      String(b.generated_at || b.created_at || '').localeCompare(String(a.generated_at || a.created_at || '')));
+    return withCat[0].iucn_category;
+  }
+
+  function bar(label, segs) {
+    const total = segs.reduce((s, x) => s + (x.n || 0), 0) || 1;
+    const legend = segs.map(x =>
+      `<span class="ov-leg"><i class="ov-dot ${x.cls}"></i>${x.label} <b>${x.n || 0}</b></span>`).join('');
+    const track = segs.map(x =>
+      `<div class="ov-seg ${x.cls}" style="width:${((x.n || 0) / total * 100).toFixed(1)}%"></div>`).join('');
+    return `<div class="ov-bar">
+      <div class="ov-bar-head"><span class="ov-bar-label">${label}</span><span class="ov-legend">${legend}</span></div>
+      <div class="ov-track">${track}</div>
+    </div>`;
+  }
+
+  async function loadDashboard() {
+    const el = container.querySelector('#proj-dashboard');
+    if (!el) return;
+    const active = window.IRIS.session.getCurrentProject();
+    if (!active) { el.innerHTML = ''; return; }
+    try {
+      const [s, asmts] = await Promise.all([
+        window.IRIS.api.items.summary(active.id),
+        window.IRIS.api.assessments.list(active.id).catch(() => []),
+      ]);
+      const t = s.totals || {}, vv = s.vouchervision || {}, a = s.assessments || {};
+      const prov = s.provenance || { gbif: 0, upload: 0 };
+      const items = t.items || 0, complete = vv.complete || 0, geo = s.georeferenced || 0;
+      const asmtTotal = (a.draft || 0) + (a.review || 0) + (a.final || 0);
+      const pct = (n, d) => d ? Math.round(n / d * 100) : 0;
+
+      // Inject the current Red List category chip into the header.
+      const cat = latestCategory(asmts);
+      const rl = container.querySelector('#proj-redlist');
+      if (rl) rl.innerHTML = cat
+        ? `<span class="ov-vu"><span class="cat-chip cat-${cat}">${cat}</span><span class="ov-vu-label">${CAT_LABEL[cat] || ''} — IUCN Red List</span></span>`
+        : '';
+
+      if (!items) {
+        el.innerHTML = `<div class="ov-empty muted small">No sources yet — open the <strong>Library</strong> or <strong>GBIF</strong> tab to add specimens.</div>`;
+        return;
+      }
+
+      el.innerHTML = `
+        <div class="ov-kpis">
+          <div class="ov-kpi"><div class="ov-kpi-num">${items}</div><div class="ov-kpi-label">Sources</div><div class="ov-kpi-sub">images, pdfs &amp; notebooks</div></div>
+          <div class="ov-kpi"><div class="ov-kpi-num">${complete}</div><div class="ov-kpi-label">Processed</div><div class="ov-kpi-sub">${pct(complete, items)}% complete</div></div>
+          <div class="ov-kpi"><div class="ov-kpi-num">${geo}</div><div class="ov-kpi-label">Georeferenced</div><div class="ov-kpi-sub">${pct(geo, items)}% mapped</div></div>
+          <div class="ov-kpi"><div class="ov-kpi-num">${asmtTotal}</div><div class="ov-kpi-label">Assessments</div><div class="ov-kpi-sub">${a.draft || 0} draft · ${a.review || 0} review · ${a.final || 0} final</div></div>
+        </div>
+        <div class="ov-bars">
+          ${bar('Source type', [
+            { label: 'Images', n: t.images, cls: 'ov-seg-img' },
+            { label: 'PDFs', n: t.pdfs, cls: 'ov-seg-pdf' },
+            { label: 'Notebooks', n: t.notebooks, cls: 'ov-seg-nb' },
+          ])}
+          ${bar('Provenance', [
+            { label: 'GBIF', n: prov.gbif, cls: 'ov-seg-gbif' },
+            { label: 'User uploads', n: prov.upload, cls: 'ov-seg-upload' },
+          ])}
+          ${bar('Processing', [
+            { label: 'Complete', n: vv.complete, cls: 'ov-seg-complete' },
+            { label: 'Pending', n: vv.pending, cls: 'ov-seg-pending' },
+            { label: 'Errored', n: vv.errored, cls: 'ov-seg-error' },
+          ])}
+        </div>`;
+    } catch (err) {
+      el.innerHTML = `<div class="muted small">Could not load summary: ${escapeHtml(err.message)}</div>`;
+    }
   }
 
   const ROLE_OPTIONS = ['owner', 'editor', 'uploader'];

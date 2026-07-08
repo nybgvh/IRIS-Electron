@@ -60,18 +60,48 @@ const api = {
     list:   invoke('sources:list'),   // (token, projectId, query)
     upload: invoke('sources:upload'), // (token, projectId, payload)
     delete: invoke('sources:delete'), // (token, id)
+    move:   invoke('sources:move'),   // (token, id, targetProjectId)
+    flag:   invoke('sources:flag'),   // (token, id, flagged)
+    checkDuplicates: invoke('sources:checkDuplicates'), // (token, projectId, hashes)
+  },
+  items: {
+    list:    invoke('items:list'),    // (token, projectId, opts)
+    summary: invoke('items:summary'), // (token, projectId)
+  },
+  tags: {
+    list:     invoke('tags:list'),     // (token, projectId)
+    create:   invoke('tags:create'),   // (token, projectId, body)
+    update:   invoke('tags:update'),   // (token, tagId, patch)
+    delete:   invoke('tags:delete'),   // (token, tagId)
+    assign:   invoke('tags:assign'),   // (token, sourceId, tagId)
+    unassign: invoke('tags:unassign'), // (token, sourceId, tagId)
   },
   vouchervision: {
-    list:   invoke('vouchervision:list'),   // (token, projectId)
-    create: invoke('vouchervision:create'), // (token, projectId, payload)
-    delete: invoke('vouchervision:delete'), // (token, id)
+    list:         invoke('vouchervision:list'),         // (token, projectId)
+    getForSource: invoke('vouchervision:getForSource'), // (token, sourceId)
+    create:       invoke('vouchervision:create'),       // (token, projectId, payload)
+    reprocess:    invoke('vouchervision:reprocess'),    // (token, sourceId)
+    delete:       invoke('vouchervision:delete'),       // (token, id)
   },
   assessments: {
-    list:   invoke('assessments:list'),   // (token, projectId)
-    get:    invoke('assessments:get'),    // (token, id)
-    create: invoke('assessments:create'), // (token, projectId, payload)
-    update: invoke('assessments:update'), // (token, id, patch)
-    delete: invoke('assessments:delete'), // (token, id)
+    list:     invoke('assessments:list'),     // (token, projectId)
+    get:      invoke('assessments:get'),      // (token, id)
+    create:   invoke('assessments:create'),   // (token, projectId, payload)
+    update:   invoke('assessments:update'),   // (token, id, patch)
+    delete:   invoke('assessments:delete'),   // (token, id)
+    generate: invoke('assessments:generate'), // (token, projectId, opts)
+  },
+  gbif: {
+    getOccurrence: invoke('gbif:getOccurrence'), // (token, projectId, ref)
+    saveImport:    invoke('gbif:saveImport'),    // (token, projectId, ref, imageData)
+    list:          invoke('gbif:list'),          // (token, projectId)
+    remove:        invoke('gbif:remove'),        // (token, id)
+    enumerateSearch: invoke('gbif:enumerateSearch'), // (token, projectId, searchUrl, opts)
+    bookmark:       invoke('gbif:bookmark'),       // (token, projectId, url, label)
+    bookmarks:      invoke('gbif:bookmarks'),      // (token, projectId)
+    removeBookmark: invoke('gbif:removeBookmark'), // (token, id)
+    setCapture:     invoke('gbif:setCapture'),     // (token, on)
+    onDownload:     (cb) => ipcRenderer.on('gbif:download', (_e, data) => cb(data)),
   },
   settings: {
     get:    invoke('settings:get'),    // (token)

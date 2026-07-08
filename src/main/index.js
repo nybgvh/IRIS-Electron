@@ -42,6 +42,7 @@ const dbConn = require('../server/db/connection');
 const { runMigrations } = require('../server/db/migrate');
 const { runSeed } = require('../server/db/seed');
 const fileStore = require('../server/storage/file-store');
+const config = require('../server/config');
 
 // Custom protocol schemes must be declared as privileged BEFORE app ready.
 irisProtocol.registerSchemes();
@@ -57,6 +58,19 @@ function bootServer() {
   if (seed.users && seed.users.length) console.log('[iris] seeded users:', seed.users);
   if (seed.project)          console.log('[iris] seeded default project');
   fileStore.init(paths.storageRoot());
+
+  if (config.hasVouchervision()) {
+    const vvQueue = require('../server/vouchervision/queue');
+    const vvClient = require('../server/vouchervision/client');
+    vvQueue.start();
+    // Fire-and-forget — never block boot on a slow / unreachable VV server.
+    vvClient.authCheck()
+      .then(ok => console.log(`[iris] vouchervision auth-check: ${ok ? 'ok' : 'FAILED'}`))
+      .catch(err => console.log('[iris] vouchervision auth-check error:', err && err.message));
+    app.on('will-quit', () => { try { vvQueue.stop(); } catch (_) {} });
+  } else {
+    console.log('[iris] vouchervision queue: disabled (set VV_API_BASE_URL and VV_API_KEY to enable)');
+  }
 }
 
 app.whenReady().then(() => {

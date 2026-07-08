@@ -25,11 +25,13 @@ npm start        # boots the app
 ```
 
 On first launch the app creates `<userData>/iris.sqlite`, runs the SQL
-migrations under `src/server/db/migrations/`, and seeds a single Phase 0
-admin user — log in with:
+migrations under `src/server/db/migrations/`, and seeds a Phase 0 dev team
+with four users (all password `1234`, bcrypt-hashed at seed time):
 
-- **Email:** `1234@gmail.com`
-- **Password:** `1234`
+- `admin@gmail.com` — global admin (sees Admin Tools)
+- `owner@gmail.com` — owns the seeded project
+- `editor@gmail.com` — editor on the seeded project
+- `uploader@gmail.com` — uploader on the seeded project
 
 The password is bcrypt-hashed at seed time, so the auth flow is the same
 shape it will be in production.

@@ -10,6 +10,7 @@
     sources:    () => window.IRIS.SourcesPage,
     geography:  () => window.IRIS.GeographyPage,
     assessment: () => window.IRIS.AssessmentPage,
+    gbif:       () => window.IRIS.GbifPage,
     references: () => window.IRIS.ReferencesPage,
   };
 

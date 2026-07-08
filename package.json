@@ -20,7 +20,8 @@
     "better-sqlite3": "^11.3.0",
     "dotenv": "^16.6.1",
     "electron-updater": "^6.1.7",
-    "pdf-to-img": "^4.5.0"
+    "pdf-to-img": "^4.5.0",
+    "sharp": "^0.33.5"
   },
   "build": {
     "appId": "org.nybg.iris",

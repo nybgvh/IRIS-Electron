@@ -1,9 +1,10 @@
 (function () {
   const TABS = [
     { id: 'project',     label: 'Project' },
-    { id: 'sources',     label: 'Sources' },
+    { id: 'sources',     label: 'Library' },
     { id: 'geography',   label: 'Geography' },
     { id: 'assessment',  label: 'Assessment' },
+    { id: 'gbif',        label: 'GBIF' },
     { id: 'references',  label: 'References' },
   ];
 

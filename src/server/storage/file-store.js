@@ -53,10 +53,16 @@ function projectDir(projectId, sub) {
   return rel;
 }
 
-function saveSource(projectId, filename, buffer) {
+function saveSource(projectId, filename, buffer, { unique = false } = {}) {
   const sub = projectDir(projectId, 'sources');
   const hash = sha256(buffer);
-  const rel = path.join(sub, `${hash.slice(0, 12)}-${safeName(filename)}`);
+  // Content-addressed by default (identical bytes → one file). `unique` is used
+  // for a forced re-upload of an existing file so the new row owns its own file
+  // and deleting one copy never removes the other's bytes.
+  const prefix = unique
+    ? `${hash.slice(0, 8)}-${crypto.randomBytes(4).toString('hex')}`
+    : hash.slice(0, 12);
+  const rel = path.join(sub, `${prefix}-${safeName(filename)}`);
   const abs = path.resolve(getRoot(), rel);
   fs.writeFileSync(abs, buffer);
   return { storage_path: rel, sha256: hash, byte_size: buffer.length };
@@ -80,12 +86,111 @@ function saveVouchervisionJson(projectId, vvId, jsonString) {
   return rel;
 }
 
+/*
+ * Save a derived VoucherVision image (a JPEG buffer) next to its record JSON.
+ *   kind: 'full' | 'cropped'  (plus 'p<NN>-full' etc. for PDF pages)
+ * Layout: <root>/projects/<pid>/vouchervision/<vvId>-<kind>.jpg
+ */
+function saveVouchervisionImage(projectId, vvId, kind, buffer) {
+  const sub = projectDir(projectId, 'vouchervision');
+  const rel = path.join(sub, `${vvId}-${safeName(kind)}.jpg`);
+  const abs = path.resolve(getRoot(), rel);
+  fs.writeFileSync(abs, buffer);
+  return rel;
+}
+
+/*
+ * Remove every on-disk artifact for a VoucherVision record: the <id>.json and
+ * all <id>-*.jpg derived images. Best-effort — missing files are fine. Used by
+ * delete (no more orphans) and by reprocess (clear stale artifacts first).
+ */
+function deleteVouchervisionArtifacts(projectId, vvId) {
+  const dirRel = path.join('projects', String(projectId), 'vouchervision');
+  const dirAbs = path.resolve(getRoot(), dirRel);
+  let removed = 0;
+  let names;
+  try { names = fs.readdirSync(dirAbs); } catch (_) { return 0; }
+  const prefix = `${vvId}`;
+  for (const name of names) {
+    // Match "<id>.json", "<id>-full.jpg", "<id>-p0001-cropped.jpg" — but NOT
+    // "<id2>..." where id2 starts with id (guard with a boundary char).
+    if (name === `${prefix}.json` ||
+        name.startsWith(`${prefix}-`)) {
+      try { fs.unlinkSync(path.join(dirAbs, name)); removed++; } catch (_) {}
+    }
+  }
+  return removed;
+}
+
+/*
+ * Move all of a VoucherVision record's artifacts (the <id>.json and every
+ * <id>-*.jpg) from one project's vouchervision dir to another's. Returns the
+ * new relative paths for the columns the DB tracks:
+ *   { storage_path, image_full_path, image_cropped_path }
+ * (page images <id>-pNNNN-*.jpg are moved too but only referenced inside the
+ * JSON blob, so they aren't returned). Missing files are simply skipped.
+ */
+function moveVouchervisionArtifacts(oldProjectId, newProjectId, vvId) {
+  const oldDirAbs = path.resolve(getRoot(), 'projects', String(oldProjectId), 'vouchervision');
+  const newDirRel = projectDir(newProjectId, 'vouchervision');
+  const newDirAbs = path.resolve(getRoot(), newDirRel);
+  const out = { storage_path: null, image_full_path: null, image_cropped_path: null };
+  let names;
+  try { names = fs.readdirSync(oldDirAbs); } catch (_) { return out; }
+
+  for (const name of names) {
+    if (name !== `${vvId}.json` && !name.startsWith(`${vvId}-`)) continue;
+    const newRel = path.join(newDirRel, name);
+    moveInPlace(path.join(oldDirAbs, name), path.resolve(newDirAbs, name));
+    if (name === `${vvId}.json`) out.storage_path = newRel;
+    else if (name === `${vvId}-full.jpg`) out.image_full_path = newRel;
+    else if (name === `${vvId}-cropped.jpg`) out.image_cropped_path = newRel;
+  }
+  return out;
+}
+
+// rename with a cross-device (EXDEV) copy+unlink fallback; ENOENT-safe.
+function moveInPlace(oldAbs, newAbs) {
+  if (oldAbs === newAbs) return;
+  try {
+    fs.renameSync(oldAbs, newAbs);
+  } catch (err) {
+    if (err.code === 'EXDEV') {
+      fs.copyFileSync(oldAbs, newAbs);
+      try { fs.unlinkSync(oldAbs); } catch (_) {}
+    } else if (err.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+}
+
+/*
+ * Move a source's stored bytes from one project's tree to another (item move).
+ * Returns the new relative storage_path. The DB re-key happens in the service;
+ * this only moves the file. No-op-safe if the source file is already gone.
+ */
+function moveSource(oldRelPath, newProjectId, filename) {
+  const sub = projectDir(newProjectId, 'sources');
+  const base = path.basename(oldRelPath) || safeName(filename);
+  const newRel = path.join(sub, base);
+  const oldAbs = resolve(oldRelPath);
+  const newAbs = path.resolve(getRoot(), newRel);
+  if (oldAbs === newAbs) return oldRelPath;
+  moveInPlace(oldAbs, newAbs);
+  return newRel;
+}
+
 module.exports = {
   init,
   getRoot,
   resolve,
+  sha256,
   saveSource,
   saveVouchervisionJson,
+  saveVouchervisionImage,
+  deleteVouchervisionArtifacts,
+  moveVouchervisionArtifacts,
+  moveSource,
   deleteFile,
   projectDir,
 };

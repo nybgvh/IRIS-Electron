@@ -29,6 +29,19 @@ function pickAuthHeader(apiKey) {
   return { 'X-API-Key': apiKey };
 }
 
+// Merge per-call flag overrides onto the base config. Only a whitelist of
+// boolean submission flags may be overridden — used to force ocr_only +
+// skip_label_collage for PDF / notebook pages (document pages have no single
+// specimen label, so the collage step 500s: "No collage could be created").
+function withOptions(vv, options) {
+  if (!options) return vv;
+  const merged = { ...vv };
+  for (const k of ['ocrOnly', 'skipLabelCollage', 'notebookMode']) {
+    if (options[k] !== undefined) merged[k] = options[k];
+  }
+  return merged;
+}
+
 function buildFormFields(vv) {
   // Returns an array of [name, value] pairs. `engines` is intentionally
   // emitted as one entry per engine — the server treats it as a list.
@@ -74,8 +87,8 @@ function classifyError(res) {
   return ERR_RETRYABLE;
 }
 
-async function attemptSubmit({ bytes, filename, mimeType }) {
-  const vv = config.vouchervision;
+async function attemptSubmit({ bytes, filename, mimeType, options }) {
+  const vv = withOptions(config.vouchervision, options);
   const url = vv.apiBaseUrl.replace(/\/+$/, '') + vv.endpoint;
 
   const form = new FormData();
@@ -113,15 +126,18 @@ async function attemptSubmit({ bytes, filename, mimeType }) {
  * /process. Retries network errors and 5xx up to `maxRetries` with
  * exponential backoff (5s, 30s, 150s...). 4xx fails immediately.
  *
- * Returns the parsed JSON dict on success; throws on terminal failure.
+ * `options` may override the ocr_only / skip_label_collage / notebook_mode
+ * flags for this one submission (PDF and notebook pages need ocr_only +
+ * skip_label_collage). Returns the parsed JSON dict on success; throws on
+ * terminal failure.
  */
-async function submit({ bytes, filename, mimeType }) {
+async function submit({ bytes, filename, mimeType, options }) {
   const vv = config.vouchervision;
   const maxAttempts = (vv.maxRetries ?? 2) + 1;
   let lastErr;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await attemptSubmit({ bytes, filename, mimeType });
+      return await attemptSubmit({ bytes, filename, mimeType, options });
     } catch (err) {
       lastErr = err;
       if (err.kind === ERR_4XX) throw err;

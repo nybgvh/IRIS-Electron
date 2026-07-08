@@ -58,6 +58,29 @@ async function* renderPages(absPath, { dpi = 150, originalFilename } = {}) {
 }
 
 /*
+ * Same as renderPages but rasterises directly from an in-memory PDF buffer
+ * (pdf-to-img accepts a Uint8Array). Used by the upload path, which explodes a
+ * PDF into per-page image items without ever writing the PDF to storage.
+ */
+async function* renderPagesFromBuffer(buffer, { dpi = 150, originalFilename = 'document.pdf' } = {}) {
+  const pdf = await getPdf();
+  const doc = await pdf(new Uint8Array(buffer), { scale: dpiToScale(dpi) });
+  const baseName = path.parse(originalFilename).name;
+
+  let pageNumber = 0;
+  for await (const buf of doc) {
+    pageNumber += 1;
+    const paddedNum = String(pageNumber).padStart(4, '0');
+    yield {
+      pageNumber,
+      buffer: buf,
+      filename: `${baseName}__page_${paddedNum}.png`,
+      mimeType: 'image/png',
+    };
+  }
+}
+
+/*
  * Page count without rasterising. Useful for logging / progress estimation;
  * the queue uses this to decide whether to log "splitting N pages..." before
  * the slow loop starts.
@@ -68,4 +91,4 @@ async function pageCount(absPath) {
   return doc.length;
 }
 
-module.exports = { renderPages, pageCount };
+module.exports = { renderPages, renderPagesFromBuffer, pageCount };
