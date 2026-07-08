@@ -4,6 +4,54 @@
 Garden. Cross-platform desktop prototype, intended to graduate to a public
 web service.
 
+## Developer quickstart
+
+**Prerequisites:** Node.js + npm.
+
+```sh
+npm install                        # + electron-builder install-app-deps (postinstall)
+```
+
+Create a `.env` in the repo root (gitignored — never commit it) with the API
+credentials. See `.env.example` for every knob (concurrency, timeouts, prompt
+overrides, optional Vertex billing):
+
+```sh
+VV_API_BASE_URL=https://<your-voucherVisionGO-host>
+VV_API_KEY=<your key>
+GEMINI_API_KEY=<your key>          # Red List summary generation
+```
+
+**Launch the Electron app:**
+
+```sh
+npm start
+```
+
+> If the window fails to open with `Cannot read properties of undefined (reading 'isPackaged')`,
+> a leaked `ELECTRON_RUN_AS_NODE` (from a smoke run) is the cause — clear it:
+> `env -u ELECTRON_RUN_AS_NODE npm start`.
+
+Log in as the seeded **`admin@gmail.com` / `1234`** (all seeded users are listed
+under [Quick start](#quick-start)).
+
+**Smoke tests** (no live API — the VVGO client and Gemini provider are mocked):
+
+```sh
+ELECTRON_RUN_AS_NODE=1 ./node_modules/.bin/electron scripts/smoke-pipeline.js      # backend + pipeline
+env -u ELECTRON_RUN_AS_NODE ./node_modules/.bin/electron scripts/smoke-renderer.js # renderer + UI
+```
+
+### Editable prompts
+
+- **Red List assessment / summary prompt** → **`src/server/aggregation/prompt.js`**
+  (`RedListPrompt` — `RETURN_SCHEMA`, the six IUCN section instructions, and the
+  `RECORD_FIELDS` fed to the model). This is the exact text sent to Gemini.
+  **Mirror any edit in `examples/prompt.py`** — the two are kept 1:1.
+- **Specimen OCR / field-extraction prompt** → set **`VV_PROMPT`** in `.env`
+  (blank = VoucherVisionGO's default). The VVGO prompt library itself lives in
+  the read-only VoucherVisionGO repo and is not modified here.
+
 ## Architecture
 
 ```
